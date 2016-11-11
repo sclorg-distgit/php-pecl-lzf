@@ -1,3 +1,5 @@
+# centos/sclo spec file for php-pecl-lzf, from:
+#
 # remirepo spec file for php-pecl-lzf
 # adapted for SCL, from
 #
@@ -9,40 +11,35 @@
 # Please preserve changelog entries
 #
 %if 0%{?scl:1}
+%global sub_prefix sclo-%{scl_prefix}
 %if "%{scl}" == "rh-php56"
-%global sub_prefix more-php56-
-%else
-%global sub_prefix %{scl_prefix}
+%global sub_prefix sclo-php56-
+%endif
+%if "%{scl}" == "rh-php70"
+%global sub_prefix sclo-php70-
 %endif
 %scl_package        php-pecl-lzf
 %endif
 
 %define pecl_name   LZF
 %define  ext_name   lzf
-%global with_zts    0%{!?_without_zts:%{?__ztsphp:1}}
-%if "%{php_version}" < "5.6"
-%global ini_name    %{ext_name}.ini
-%else
 %global ini_name    40-%{ext_name}.ini
-%endif
 
 Name:           %{?sub_prefix}php-pecl-lzf
 Version:        1.6.5
-Release:        2%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
+Release:        1%{?dist}
 Summary:        Extension to handle LZF de/compression
 Group:          Development/Languages
-License:        PHP
+# extension is PHP, lzf library is BSD
+License:        PHP and BSD
 URL:            http://pecl.php.net/package/%{pecl_name}
 Source0:        http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:  %{?scl_prefix}php-devel
 BuildRequires:  %{?scl_prefix}php-pear
-BuildRequires:  liblzf-devel
 
 Requires:       %{?scl_prefix}php(zend-abi) = %{php_zend_api}
 Requires:       %{?scl_prefix}php(api) = %{php_core_api}
-%{?_sclreq:Requires: %{?scl_prefix}runtime%{?_sclreq}%{?_isa}}
 
 Provides:       %{?scl_prefix}php-%{ext_name}                = %{version}
 Provides:       %{?scl_prefix}php-%{ext_name}%{?_isa}        = %{version}
@@ -53,30 +50,6 @@ Provides:       %{?scl_prefix}php-pecl-%{ext_name}%{?_isa}   = %{version}-%{rele
 Provides:       %{?scl_prefix}php-pecl(%{pecl_name})         = %{version}
 Provides:       %{?scl_prefix}php-pecl(%{pecl_name})%{?_isa} = %{version}
 
-%if "%{?vendor}" == "Remi Collet" && 0%{!?scl:1}
-# Other third party repo stuff
-Obsoletes:     php53-pecl-%{ext_name}  <= %{version}
-Obsoletes:     php53u-pecl-%{ext_name} <= %{version}
-Obsoletes:     php54-pecl-%{ext_name}  <= %{version}
-Obsoletes:     php54w-pecl-%{ext_name} <= %{version}
-%if "%{php_version}" > "5.5"
-Obsoletes:     php55u-pecl-%{ext_name} <= %{version}
-Obsoletes:     php55w-pecl-%{ext_name} <= %{version}
-%endif
-%if "%{php_version}" > "5.6"
-Obsoletes:     php56u-pecl-%{ext_name} <= %{version}
-Obsoletes:     php56w-pecl-%{ext_name} <= %{version}
-%endif
-%if "%{php_version}" > "7.0"
-Obsoletes:     php70u-pecl-%{ext_name} <= %{version}
-Obsoletes:     php70w-pecl-%{ext_name} <= %{version}
-%endif
-%if "%{php_version}" > "7.1"
-Obsoletes:     php71u-pecl-%{ext_name} <= %{version}
-Obsoletes:     php71w-pecl-%{ext_name} <= %{version}
-%endif
-%endif
-
 %if 0%{?fedora} < 20 && 0%{?rhel} < 7
 # Filter shared private
 %{?filter_provides_in: %filter_provides_in %{_libdir}/.*\.so$}
@@ -86,7 +59,7 @@ Obsoletes:     php71w-pecl-%{ext_name} <= %{version}
 
 %description
 This extension provides LZF compression and decompression using the liblzf
-library
+library.
 
 LZF is a very fast compression algorithm, ideal for saving space with a 
 slight speed cost.
@@ -101,13 +74,12 @@ Package built for PHP %(%{__php} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSIO
 
 # Don't install/register tests
 sed -e 's/role="test"/role="src"/' \
-    -e '/name="lib/d' \
     %{?_licensedir:-e '/LICENSE/s/role="doc"/role="src"/' } \
     -i package.xml
 
 mv %{pecl_name}-%{version} NTS
 cd NTS
-rm -r lib/
+%{?_licensedir:mv lib/LICENSE LICENSE.lzf}
 
 extver=$(sed -n '/#define PHP_LZF_VERSION/{s/.* "//;s/".*$//;p}' php_lzf.h)
 if test "x${extver}" != "x%{version}%{?prever}"; then
@@ -115,10 +87,6 @@ if test "x${extver}" != "x%{version}%{?prever}"; then
    exit 1
 fi
 cd ..
-
-%if %{with_zts}
-cp -r NTS ZTS
-%endif
 
 cat >%{ini_name} << 'EOF'
 ; Enable %{pecl_name} extension module
@@ -131,23 +99,11 @@ cd NTS
 %{_bindir}/phpize
 %configure \
     --enable-lzf \
-    --with-liblzf \
     --with-php-config=%{_bindir}/php-config
 make %{?_smp_mflags}
 
-%if %{with_zts}
-cd ../ZTS
-%{_bindir}/zts-phpize
-%configure \
-    --enable-lzf \
-    --with-liblzf \
-    --with-php-config=%{_bindir}/zts-php-config
-make %{?_smp_mflags}
-%endif
-
 
 %install
-rm -rf %{buildroot}
 make install -C NTS INSTALL_ROOT=%{buildroot}
 
 # Drop in the bit of configuration
@@ -155,11 +111,6 @@ install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
 
 # Install XML package description
 install -D -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
-
-%if %{with_zts}
-make install -C ZTS INSTALL_ROOT=%{buildroot}
-install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
-%endif
 
 # Documentation
 cd NTS
@@ -182,26 +133,6 @@ NO_INTERACTION=1 \
     -n -q \
     -d extension=%{buildroot}%{php_extdir}/%{ext_name}.so
 
-%if %{with_zts}
-cd ../ZTS
-: Minimal load test for ZTS extension
-%{__ztsphp} --no-php-ini \
-    --define extension=%{buildroot}/%{php_ztsextdir}/%{ext_name}.so \
-    --modules | grep %{ext_name}
-
-TEST_PHP_EXECUTABLE=%{__ztsphp} \
-REPORT_EXIT_STATUS=1 \
-NO_INTERACTION=1 \
-%{__ztsphp} -n run-tests.php \
-    -n -q \
-    -d extension_dir=modules \
-    -d extension=%{buildroot}%{php_ztsextdir}/%{ext_name}.so
-%endif
-
-%clean
-rm -rf %{buildroot}
-
-
 %if 0%{?fedora} < 24
 # when pear installed alone, after us
 %triggerin -- %{?scl_prefix}php-pear
@@ -223,21 +154,19 @@ fi
 
 
 %files
-%defattr(-,root,root,-)
-%{?_licensedir:%license NTS/LICENSE}
+%{?_licensedir:%license NTS/LICENSE*}
 %doc %{pecl_docdir}/%{pecl_name}
 %{pecl_xmldir}/%{name}.xml
 
 %config(noreplace) %{php_inidir}/%{ini_name}
 %{php_extdir}/%{ext_name}.so
 
-%if %{with_zts}
-%config(noreplace) %{php_ztsinidir}/%{ini_name}
-%{php_ztsextdir}/%{ext_name}.so
-%endif
-
 
 %changelog
+* Fri Nov 11 2016 Remi Collet <remi@fedoraproject.org> - 1.6.5-1
+- cleanup for SCLo build
+- use bundled lzf library
+
 * Wed Sep 14 2016 Remi Collet <remi@fedoraproject.org> - 1.6.5-2
 - rebuild for PHP 7.1 new API version
 
