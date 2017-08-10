@@ -18,6 +18,9 @@
 %if "%{scl}" == "rh-php70"
 %global sub_prefix sclo-php70-
 %endif
+%if "%{scl}" == "rh-php71"
+%global sub_prefix sclo-php71-
+%endif
 %scl_package        php-pecl-lzf
 %endif
 
@@ -27,7 +30,7 @@
 
 Name:           %{?sub_prefix}php-pecl-lzf
 Version:        1.6.5
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Extension to handle LZF de/compression
 Group:          Development/Languages
 # extension is PHP, lzf library is BSD
@@ -133,7 +136,7 @@ NO_INTERACTION=1 \
     -n -q \
     -d extension=%{buildroot}%{php_extdir}/%{ext_name}.so
 
-%if 0%{?fedora} < 24
+
 # when pear installed alone, after us
 %triggerin -- %{?scl_prefix}php-pear
 if [ -x %{__pecl} ] ; then
@@ -150,7 +153,6 @@ fi
 if [ $1 -eq 0 -a -x %{__pecl} ] ; then
     %{pecl_uninstall} %{pecl_name} >/dev/null || :
 fi
-%endif
 
 
 %files
@@ -163,6 +165,9 @@ fi
 
 
 %changelog
+* Thu Aug 10 2017 Remi Collet <remi@remirepo.net> - 1.6.5-2
+- change for sclo-php71
+
 * Fri Nov 11 2016 Remi Collet <remi@fedoraproject.org> - 1.6.5-1
 - cleanup for SCLo build
 - use bundled lzf library
