@@ -29,8 +29,8 @@
 %global ini_name    40-%{ext_name}.ini
 
 Name:           %{?sub_prefix}php-pecl-lzf
-Version:        1.6.5
-Release:        3%{?dist}
+Version:        1.6.7
+Release:        1%{?dist}
 Summary:        Extension to handle LZF de/compression
 Group:          Development/Languages
 # extension is PHP, lzf library is BSD
@@ -68,8 +68,6 @@ LZF is a very fast compression algorithm, ideal for saving space with a
 slight speed cost.
 
 Documentation: http://php.net/lzf
-
-Package built for PHP %(%{__php} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')%{?scl: as Software Collection (%{scl} by %{?scl_vendor}%{!?scl_vendor:rh})}.
 
 
 %prep
@@ -165,6 +163,9 @@ fi
 
 
 %changelog
+* Thu Dec 20 2018 Remi Collet <remi@remirepo.net> - 1.6.7-1
+- update to 1.6.7
+
 * Thu Nov 15 2018 Remi Collet <remi@remirepo.net> - 1.6.5-3
 - build for sclo-php72
 
