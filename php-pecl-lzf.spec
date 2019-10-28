@@ -21,6 +21,9 @@
 %if "%{scl}" == "rh-php72"
 %global sub_prefix sclo-php72-
 %endif
+%if "%{scl}" == "rh-php73"
+%global sub_prefix sclo-php73-
+%endif
 %scl_package        php-pecl-lzf
 %endif
 
@@ -30,7 +33,7 @@
 
 Name:           %{?sub_prefix}php-pecl-lzf
 Version:        1.6.7
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Extension to handle LZF de/compression
 Group:          Development/Languages
 # extension is PHP, lzf library is BSD
@@ -163,6 +166,9 @@ fi
 
 
 %changelog
+* Mon Oct 28 2019 Remi Collet <remi@remirepo.net> - 1.6.7-2
+- build for sclo-php73
+
 * Thu Dec 20 2018 Remi Collet <remi@remirepo.net> - 1.6.7-1
 - update to 1.6.7
 
